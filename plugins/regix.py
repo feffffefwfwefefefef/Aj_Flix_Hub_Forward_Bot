@@ -646,14 +646,26 @@ def TimeFormatter(milliseconds: int) -> str:
 def retry_btn(id):
     return InlineKeyboardMarkup([[InlineKeyboardButton('♻️ RETRY ♻️', f"start_public_{id}")]])
 
+
 @Client.on_callback_query(filters.regex(r'^terminate_frwd$'))
 async def terminate_frwding(bot, m):
     user_id = m.from_user.id
-    temp.CANCEL[user_id] = True
-    await m.answer("Cancelling forwarding...", show_alert=False)
+
     task = temp.FORWARD_TASKS.get(user_id)
-    if task and not task.done():
-        task.cancel()
+
+    if not task or task.done():
+        return await m.answer(
+            "No active forwarding task!",
+            show_alert=True
+        )
+
+    temp.CANCEL[user_id] = True
+
+    await m.answer(
+        "⏳ Cancelling forwarding safely...",
+        show_alert=False
+    )
+
           
 @Client.on_callback_query(filters.regex(r'^fwrdstatus'))
 async def status_msg(bot, msg):
